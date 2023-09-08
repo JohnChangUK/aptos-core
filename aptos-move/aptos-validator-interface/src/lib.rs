@@ -7,6 +7,7 @@ mod storage_interface;
 
 pub use crate::{rest_interface::RestDebuggerInterface, storage_interface::DBDebuggerInterface};
 use anyhow::{anyhow, Result};
+use aptos_framework::natives::code::PackageMetadata;
 use aptos_state_view::TStateView;
 use aptos_types::{
     account_address::AccountAddress,
@@ -21,8 +22,19 @@ use aptos_types::{
 };
 use lru::LruCache;
 use move_binary_format::file_format::CompiledModule;
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    ops::DerefMut,
+    sync::{Arc, Mutex},
+};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
+
+#[derive(Clone, Copy)]
+pub struct FilterCondition {
+    pub skip_failed_txns: bool,
+    pub skip_publish_txns: bool,
+    pub check_source_code: bool,
+}
 
 // TODO(skedia) Clean up this interfact to remove account specific logic and move to state store
 // key-value interface with fine grained storage project
@@ -45,6 +57,23 @@ pub trait AptosValidatorInterface: Sync {
         start: Version,
         limit: u64,
     ) -> Result<(Vec<Transaction>, Vec<TransactionInfo>)>;
+
+    async fn get_and_filter_committed_transactions(
+        &self,
+        start: Version,
+        limit: u64,
+        filter_condition: FilterCondition,
+    ) -> Result<
+        Vec<(
+            u64,
+            Transaction,
+            Option<(
+                AccountAddress,
+                String,
+                HashMap<(AccountAddress, String), PackageMetadata>,
+            )>,
+        )>,
+    >;
 
     async fn get_latest_version(&self) -> Result<Version>;
 
@@ -117,6 +146,7 @@ pub struct DebuggerStateView {
     query_sender:
         Mutex<UnboundedSender<(StateKey, Version, std::sync::mpsc::Sender<Option<Vec<u8>>>)>>,
     version: Version,
+    pub data_read_stake_keys: Option<Arc<Mutex<HashMap<StateKey, StateValue>>>>,
 }
 
 async fn handler_thread<'a>(
@@ -131,7 +161,6 @@ async fn handler_thread<'a>(
     let cache = Arc::new(Mutex::new(
         LruCache::<(StateKey, Version), Option<Vec<u8>>>::new(M),
     ));
-
     loop {
         let (key, version, sender) =
             if let Some((key, version, sender)) = thread_receiver.recv().await {
@@ -139,7 +168,6 @@ async fn handler_thread<'a>(
             } else {
                 break;
             };
-
         if let Some(val) = cache.lock().unwrap().get(&(key.clone(), version)) {
             sender.send(val.clone()).unwrap();
         } else {
@@ -162,11 +190,24 @@ async fn handler_thread<'a>(
 impl DebuggerStateView {
     pub fn new(db: Arc<dyn AptosValidatorInterface + Send>, version: Version) -> Self {
         let (query_sender, thread_receiver) = unbounded_channel();
-
         tokio::spawn(async move { handler_thread(db, thread_receiver).await });
         Self {
             query_sender: Mutex::new(query_sender),
             version,
+            data_read_stake_keys: None,
+        }
+    }
+
+    pub fn new_with_data_reads(
+        db: Arc<dyn AptosValidatorInterface + Send>,
+        version: Version,
+    ) -> Self {
+        let (fake_query_sender, thread_receiver) = unbounded_channel();
+        tokio::spawn(async move { handler_thread(db, thread_receiver).await });
+        Self {
+            query_sender: Mutex::new(fake_query_sender),
+            version,
+            data_read_stake_keys: Some(Arc::new(Mutex::new(HashMap::new()))),
         }
     }
 
@@ -181,7 +222,19 @@ impl DebuggerStateView {
             .send((state_key.clone(), version, tx))
             .unwrap();
         let bytes_opt = rx.recv()?;
-        Ok(bytes_opt.map(|bytes| StateValue::new_legacy(bytes.into())))
+        let ret = bytes_opt.map(|bytes| StateValue::new_legacy(bytes.into()));
+
+        if let Some(reads) = &self.data_read_stake_keys {
+            if !reads.lock().unwrap().contains_key(state_key) && ret.is_some() {
+                reads
+                    .lock()
+                    .unwrap()
+                    .deref_mut()
+                    .insert(state_key.clone(), ret.clone().unwrap());
+            }
+        }
+
+        Ok(ret)
     }
 }
 
