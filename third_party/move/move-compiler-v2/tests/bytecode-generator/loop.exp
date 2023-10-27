@@ -1,5 +1,79 @@
 // ---- Model Dump
 module 0x42::loops {
+    private fun for_loop(x: u64): u64 {
+        {
+          let x: u64 = x;
+          loop {
+            if Gt<u64>(x, 0) {
+              x: u64 = Sub<u64>(x, 1);
+              Tuple();
+              x: u64 = Sub<u64>(x, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        x
+    }
+    private fun for_loop_with_break_and_continue(x: u64): u64 {
+        {
+          let x: u64 = x;
+          loop {
+            if Gt<u64>(x, 0) {
+              if Eq<u64>(x, 42) {
+                break
+              } else {
+                Tuple()
+              };
+              if Eq<u64>(x, 21) {
+                continue
+              } else {
+                Tuple()
+              };
+              Tuple();
+              x: u64 = Sub<u64>(x, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        x
+    }
+    private fun nested_for_loop(x: u64): u64 {
+        {
+          let x: u64 = x;
+          loop {
+            if Gt<u64>(x, 0) {
+              {
+                let x: u64 = x;
+                loop {
+                  if Gt<u64>(x, 10) {
+                    break;
+                    Tuple();
+                    x: u64 = Sub<u64>(x, 1);
+                    Tuple()
+                  } else {
+                    break
+                  }
+                };
+                Tuple()
+              };
+              continue;
+              Tuple();
+              x: u64 = Sub<u64>(x, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        x
+    }
     private fun nested_loop(x: u64): u64 {
         loop {
           if Gt<u64>(x, 0) {
@@ -53,13 +127,147 @@ module 0x42::loops {
         };
         x
     }
+    spec fun $for_loop(x: u64): u64;
+    spec fun $for_loop_with_break_and_continue(x: u64): u64;
+    spec fun $nested_for_loop(x: u64): u64;
     spec fun $nested_loop(x: u64): u64;
     spec fun $while_loop(x: u64): u64;
     spec fun $while_loop_with_break_and_continue(x: u64): u64;
 } // end 0x42::loops
-
++
 ============ initial bytecode ================
-
++
+[variant baseline]
+fun loops::for_loop($t0: u64): u64 {
+     var $t1: u64
+     var $t2: u64
+     var $t3: bool
+     var $t4: u64
+     var $t5: u64
+     var $t6: u64
+     var $t7: u64
+     var $t8: u64
+  0: $t2 := move($t0)
+  1: label L0
+  2: $t4 := 0
+  3: $t3 := >($t0, $t4)
+  4: if ($t3) goto 5 else goto 13
+  5: label L2
+  6: $t6 := 1
+  7: $t5 := -($t0, $t6)
+  8: $t0 := move($t5)
+  9: $t8 := 1
+ 10: $t7 := -($t0, $t8)
+ 11: $t0 := move($t7)
+ 12: goto 15
+ 13: label L3
+ 14: goto 17
+ 15: label L4
+ 16: goto 1
+ 17: label L1
+ 18: $t1 := move($t0)
+ 19: return $t1
+}
++
++
+[variant baseline]
+fun loops::for_loop_with_break_and_continue($t0: u64): u64 {
+     var $t1: u64
+     var $t2: u64
+     var $t3: bool
+     var $t4: u64
+     var $t5: bool
+     var $t6: u64
+     var $t7: bool
+     var $t8: u64
+     var $t9: u64
+     var $t10: u64
+  0: $t2 := move($t0)
+  1: label L0
+  2: $t4 := 0
+  3: $t3 := >($t0, $t4)
+  4: if ($t3) goto 5 else goto 26
+  5: label L2
+  6: $t6 := 42
+  7: $t5 := ==($t0, $t6)
+  8: if ($t5) goto 9 else goto 12
+  9: label L5
+ 10: goto 30
+ 11: goto 13
+ 12: label L6
+ 13: label L7
+ 14: $t8 := 21
+ 15: $t7 := ==($t0, $t8)
+ 16: if ($t7) goto 17 else goto 20
+ 17: label L8
+ 18: goto 1
+ 19: goto 21
+ 20: label L9
+ 21: label L10
+ 22: $t10 := 1
+ 23: $t9 := -($t0, $t10)
+ 24: $t0 := move($t9)
+ 25: goto 28
+ 26: label L3
+ 27: goto 30
+ 28: label L4
+ 29: goto 1
+ 30: label L1
+ 31: $t1 := move($t0)
+ 32: return $t1
+}
++
++
+[variant baseline]
+fun loops::nested_for_loop($t0: u64): u64 {
+     var $t1: u64
+     var $t2: u64
+     var $t3: bool
+     var $t4: u64
+     var $t5: u64
+     var $t6: bool
+     var $t7: u64
+     var $t8: u64
+     var $t9: u64
+     var $t10: u64
+     var $t11: u64
+  0: $t2 := move($t0)
+  1: label L0
+  2: $t4 := 0
+  3: $t3 := >($t0, $t4)
+  4: if ($t3) goto 5 else goto 27
+  5: label L2
+  6: $t5 := move($t0)
+  7: label L5
+  8: $t7 := 10
+  9: $t6 := >($t0, $t7)
+ 10: if ($t6) goto 11 else goto 17
+ 11: label L7
+ 12: goto 21
+ 13: $t9 := 1
+ 14: $t8 := -($t0, $t9)
+ 15: $t0 := move($t8)
+ 16: goto 19
+ 17: label L8
+ 18: goto 21
+ 19: label L9
+ 20: goto 7
+ 21: label L6
+ 22: goto 1
+ 23: $t11 := 1
+ 24: $t10 := -($t0, $t11)
+ 25: $t0 := move($t10)
+ 26: goto 29
+ 27: label L3
+ 28: goto 31
+ 29: label L4
+ 30: goto 1
+ 31: label L1
+ 32: $t1 := move($t0)
+ 33: return $t1
+}
++
++
 [variant baseline]
 fun loops::nested_loop($t0: u64): u64 {
      var $t1: u64
@@ -104,8 +312,8 @@ fun loops::nested_loop($t0: u64): u64 {
  30: $t1 := move($t0)
  31: return $t1
 }
-
-
++
++
 [variant baseline]
 fun loops::while_loop($t0: u64): u64 {
      var $t1: u64
@@ -130,8 +338,8 @@ fun loops::while_loop($t0: u64): u64 {
  14: $t1 := move($t0)
  15: return $t1
 }
-
-
++
++
 [variant baseline]
 fun loops::while_loop_with_break_and_continue($t0: u64): u64 {
      var $t1: u64

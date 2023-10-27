@@ -1,0 +1,69 @@
+// ---- Model Dump
+module 0x8675309::M {
+    private fun t0(init: u8) {
+        {
+          let i: u8 = init;
+          loop {
+            if true {
+              Tuple();
+              i: u8 = Add<u8>(i, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        {
+          let i: u8 = init;
+          loop {
+            if false {
+              Tuple();
+              i: u8 = Add<u8>(i, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        Tuple()
+    }
+    private fun t1(init: u8) {
+        {
+          let i: u8 = init;
+          loop {
+            if {
+              let foo: bool = true;
+              foo
+            } {
+              Tuple();
+              i: u8 = Add<u8>(i, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        {
+          let i: u8 = init;
+          loop {
+            if {
+              let bar: bool = false;
+              bar
+            } {
+              Tuple();
+              i: u8 = Add<u8>(i, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        Tuple()
+    }
+    spec fun $t0(init: u8);
+    spec fun $t1(init: u8);
+} // end 0x8675309::M

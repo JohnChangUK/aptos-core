@@ -1,0 +1,49 @@
+// ---- Model Dump
+module 0x8675309::M {
+    private fun t0(w_cond: bool,iter: u8,f_cond: bool) {
+        loop {
+          if w_cond {
+            {
+              let i: u8 = iter;
+              loop {
+                if f_cond {
+                  Tuple();
+                  i: u8 = Add<u8>(i, 1);
+                  Tuple()
+                } else {
+                  break
+                }
+              };
+              Tuple()
+            }
+          } else {
+            break
+          }
+        };
+        Tuple()
+    }
+    private fun t1(iter: u8,f_cond: bool,w_cond: bool) {
+        {
+          let i: u8 = iter;
+          loop {
+            if f_cond {
+              loop {
+                if w_cond {
+                  Tuple()
+                } else {
+                  break
+                }
+              };
+              i: u8 = Add<u8>(i, 1);
+              Tuple()
+            } else {
+              break
+            }
+          };
+          Tuple()
+        };
+        Tuple()
+    }
+    spec fun $t0(w_cond: bool,iter: u8,f_cond: bool);
+    spec fun $t1(iter: u8,f_cond: bool,w_cond: bool);
+} // end 0x8675309::M
