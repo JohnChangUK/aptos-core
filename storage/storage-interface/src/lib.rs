@@ -492,10 +492,9 @@ impl MoveStorage for &dyn DbReader {
 
     fn fetch_config_by_version(&self, config_id: ConfigID, version: Version) -> Result<Vec<u8>> {
         let config_value_option = self.get_state_value_by_version(
-            &StateKey::access_path(AccessPath::new(
-                CORE_CODE_ADDRESS,
-                access_path_for_config(config_id)?.path,
-            )),
+            &StateKey::access_path(
+                AccessPath::new(CORE_CODE_ADDRESS, access_path_for_config(config_id)?.path)
+            ),
             version,
         )?;
         config_value_option
@@ -567,6 +566,7 @@ pub trait DbWriter: Send + Sync {
         db_reader: Arc<dyn DbReader>,
         first_version: Version,
         write_sets: &[&WriteSet],
+        epoch: u64,
     ) -> Result<()> {
         unimplemented!()
     }
