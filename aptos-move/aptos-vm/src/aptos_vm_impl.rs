@@ -337,6 +337,31 @@ impl AptosVMImpl {
                 None,
             ));
         }
+
+        let max_gas_amount: u64 = txn_data.max_gas_amount().into();
+        let sequence_number_min_gas_amount: u64 =
+            txn_gas_params.storage_fee_per_state_slot_create.into();
+
+        if txn_data.fee_payer.is_some()
+            && txn_data.sequence_number == 0
+            && self
+                .get_features()
+                .is_enabled(FeatureFlag::SPONSORED_AUTOMATIC_ACCOUNT_CREATION)
+            && max_gas_amount < 2 * sequence_number_min_gas_amount
+        {
+            speculative_warn!(
+                log_context,
+                format!(
+                    "[VM] Gas unit error (sponsored transaction); min {}, submitted {}",
+                    intrinsic_gas,
+                    txn_data.max_gas_amount()
+                ),
+            );
+            return Err(VMStatus::error(
+                StatusCode::MAX_GAS_UNITS_BELOW_MIN_TRANSACTION_GAS_UNITS,
+                None,
+            ));
+        }
         Ok(())
     }
 
