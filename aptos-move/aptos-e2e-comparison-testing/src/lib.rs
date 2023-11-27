@@ -113,6 +113,7 @@ impl IndexWriter {
             .unwrap();
         self.err_logger.flush().unwrap();
     }
+
     pub fn flush_writer(&mut self) {
         self.index_writer.flush().unwrap();
         self.counter = 0;

@@ -10,8 +10,8 @@ use aptos_framework::natives::code::PackageMetadata;
 use aptos_rest_client::Client;
 use aptos_state_view::TStateView;
 use aptos_types::{
-    state_store::{state_key::StateKey, state_value::StateValue},
     block_executor::config::BlockExecutorConfigFromOnchain,
+    state_store::{state_key::StateKey, state_value::StateValue},
     transaction::{
         signature_verified_transaction::SignatureVerifiedTransaction, Transaction,
         TransactionOutput, Version,
@@ -91,8 +91,12 @@ impl DataCollection {
         // used for debugging the aggregator panic issue, will be removed later
         let val = debugger_stateview.get_state_value(TOTAL_SUPPLY_STATE_KEY.deref());
         assert!(val.is_ok() && val.unwrap().is_some());
-        AptosVM::execute_block(&sig_verified_txns, debugger_stateview, BlockExecutorConfigFromOnchain::new_no_block_limit())
-            .map_err(|err| format_err!("Unexpected VM Error: {:?}", err))
+        AptosVM::execute_block(
+            &sig_verified_txns,
+            debugger_stateview,
+            BlockExecutorConfigFromOnchain::new_no_block_limit(),
+        )
+        .map_err(|err| format_err!("Unexpected VM Error: {:?}", err))
     }
 
     fn dump_and_check_src(
@@ -241,7 +245,7 @@ impl DataCollection {
                         Self::dump_txn_index(
                             &mut data_manager.lock().unwrap(),
                             version_idx,
-                            &state_view.data_read_stake_keys.unwrap().lock().unwrap(),
+                            &state_view.get_state_keys().lock().unwrap(),
                             epoch_result_res,
                             dump_write_set,
                         );

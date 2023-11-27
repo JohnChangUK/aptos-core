@@ -146,7 +146,7 @@ pub struct DebuggerStateView {
     query_sender:
         Mutex<UnboundedSender<(StateKey, Version, std::sync::mpsc::Sender<Option<Vec<u8>>>)>>,
     version: Version,
-    pub data_read_stake_keys: Option<Arc<Mutex<HashMap<StateKey, StateValue>>>>,
+    data_read_state_keys: Option<Arc<Mutex<HashMap<StateKey, StateValue>>>>,
 }
 
 async fn handler_thread<'a>(
@@ -194,7 +194,7 @@ impl DebuggerStateView {
         Self {
             query_sender: Mutex::new(query_sender),
             version,
-            data_read_stake_keys: None,
+            data_read_state_keys: None,
         }
     }
 
@@ -207,7 +207,7 @@ impl DebuggerStateView {
         Self {
             query_sender: Mutex::new(fake_query_sender),
             version,
-            data_read_stake_keys: Some(Arc::new(Mutex::new(HashMap::new()))),
+            data_read_state_keys: Some(Arc::new(Mutex::new(HashMap::new()))),
         }
     }
 
@@ -224,7 +224,7 @@ impl DebuggerStateView {
         let bytes_opt = rx.recv()?;
         let ret = bytes_opt.map(|bytes| StateValue::new_legacy(bytes.into()));
 
-        if let Some(reads) = &self.data_read_stake_keys {
+        if let Some(reads) = &self.data_read_state_keys {
             if !reads.lock().unwrap().contains_key(state_key) && ret.is_some() {
                 reads
                     .lock()
@@ -235,6 +235,10 @@ impl DebuggerStateView {
         }
 
         Ok(ret)
+    }
+
+    pub fn get_state_keys(self) -> Arc<Mutex<HashMap<StateKey, StateValue>>> {
+        self.data_read_state_keys.unwrap()
     }
 }
 

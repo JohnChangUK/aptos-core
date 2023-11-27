@@ -40,8 +40,8 @@ use aptos_types::{
     chain_id::ChainId,
     contract_event::ContractEvent,
     on_chain_config::{
-        BlockGasLimitType, FeatureFlag, Features, OnChainConfig, TimedFeatureOverride, TimedFeaturesBuilder,
-        ValidatorSet, Version,
+        BlockGasLimitType, FeatureFlag, Features, OnChainConfig, TimedFeatureOverride,
+        TimedFeaturesBuilder, ValidatorSet, Version,
     },
     state_store::{state_key::StateKey, state_value::StateValue},
     transaction::{
@@ -1041,9 +1041,9 @@ impl FakeExecutor {
             .map_err(|e| e.into_vm_status())?;
 
         let change_set = session
-            .finish(
-                &ChangeSetConfigs::unlimited_at_gas_feature_version(LATEST_GAS_FEATURE_VERSION),
-            )
+            .finish(&ChangeSetConfigs::unlimited_at_gas_feature_version(
+                LATEST_GAS_FEATURE_VERSION,
+            ))
             .expect("Failed to generate txn effects");
         let (write_set, events) = change_set
             .try_into_storage_change_set()
