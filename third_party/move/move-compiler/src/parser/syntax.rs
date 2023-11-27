@@ -1295,7 +1295,10 @@ fn parse_for_loop(context: &mut Context) -> Result<(Exp, bool), Box<Diagnostic>>
         Exp_::Value(sp(for_loc, Value_::Num(Symbol::from("1")))),
     );
     let op_add = sp(for_loc, BinOp_::Add);
-    let iter_exp = sp(for_loc, Exp_::Name(sp(for_loc, NameAccessChain_::One(iter)), None));
+    let iter_exp = sp(
+        for_loc,
+        Exp_::Name(sp(for_loc, NameAccessChain_::One(iter)), None),
+    );
     let updated_exp = sp(
         for_loc,
         Exp_::BinopExp(Box::new(iter_exp.clone()), op_add, Box::new(one_exp)),
